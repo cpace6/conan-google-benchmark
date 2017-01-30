@@ -1,6 +1,5 @@
-import os
 from conans import ConanFile, CMake
-from conans.tools import download, unzip
+from conans.tools import download, unzip, replace_in_file
 
 
 class GoogleBenchmarkConan(ConanFile):
@@ -12,12 +11,14 @@ class GoogleBenchmarkConan(ConanFile):
     source_root = "benchmark-1.1.0"
     license = "https://github.com/google/benchmark/blob/master/LICENSE"
 
-
     def source(self):
         zip_name = "v%s.zip" % self.version
         url = "https://github.com/google/benchmark/archive/%s" % zip_name
         download(url, zip_name)
         unzip(zip_name)
+        replace_in_file('{:s}/src/CMakeLists.txt'.format(self.source_root),
+                              'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nendif()',
+                              'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nelse()\n  find_library(LIB_RT rt)\n  target_link_libraries(benchmark ${LIB_RT})\nendif()')
 
     def build(self):
         cmake = CMake(self.settings)
@@ -31,5 +32,5 @@ class GoogleBenchmarkConan(ConanFile):
         self.copy(pattern="*.a", dst="lib", src=".", keep_path=False)
         self.copy(pattern="*.lib", dst="lib", src=".", keep_path=False)
 
-    def package_info(self):  
+    def package_info(self):
         self.cpp_info.libs = ["benchmark"]
