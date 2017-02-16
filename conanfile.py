@@ -18,7 +18,7 @@ class GoogleBenchmarkConan(ConanFile):
         unzip(zip_name)
         replace_in_file('{:s}/src/CMakeLists.txt'.format(self.source_root),
                               'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nendif()',
-                              'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nelse()\n  find_library(LIB_RT rt)\n  target_link_libraries(benchmark ${LIB_RT})\nendif()')
+                              'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nelse()\n if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")\n  find_library(LIB_RT rt)\n  target_link_libraries(benchmark ${LIB_RT})\n endif()\nendif()')
 
     def build(self):
         cmake = CMake(self.settings)
