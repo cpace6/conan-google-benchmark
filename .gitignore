@@ -21,3 +21,6 @@ __pycache__
 *.exe
 *.out
 *.app
+
+#Build folder
+build*
