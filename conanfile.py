@@ -39,5 +39,7 @@ class GooglebenchmarkConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = ["benchmark"]
-        if self.settings == "Windows":
+        if self.settings.os == "Windows":
             self.cpp_info.libs.append("Shlwapi")
+        if self.settings.compiler == "gcc":
+            self.cpp_info.libs.append("pthread")
