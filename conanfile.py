@@ -9,7 +9,7 @@ class GooglebenchmarkConan(ConanFile):
     description = "A library to support the benchmarking of functions, similar to unit-tests."
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
-    default_options = "shared=True"
+    default_options = "shared=False"
     generators = "cmake"
 
     def source(self):
@@ -38,4 +38,6 @@ class GooglebenchmarkConan(ConanFile):
         self.copy("*.a", dst="lib", keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = ["benchmark", "Shlwapi"]
+        self.cpp_info.libs = ["benchmark"]
+        if self.settings == "Windows":
+            self.cpp_info.libs.append("Shlwapi")
