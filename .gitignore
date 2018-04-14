@@ -1,15 +1,21 @@
-__pycache__
-
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
 
+# Precompiled Headers
+*.gch
+*.pch
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
+
+# Fortran module files
+*.mod
+*.smod
 
 # Compiled Static libraries
 *.lai
@@ -22,5 +28,17 @@ __pycache__
 *.out
 *.app
 
-#Build folder
-build*
+# Cache
+__pycache__/*
+test_package/__pycache__/*
+test_package/build/*
+build/*
+*.pyc
+tmp/
+
+# IDE
+.idea/*
+.project
+.pydevproject
+.settings/*
+.ropeproject/*
