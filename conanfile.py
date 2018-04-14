@@ -50,7 +50,7 @@ class GooglebenchmarkConan(ConanFile):
         
     def configure_cmake(self):
         cmake = CMake(self)
-        cmake.definitions["BUILD_TESTS"] = False # example
+        #cmake.definitions["BUILD_TESTS"] = False # example
         if self.settings.os != 'Windows':
             cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
         cmake.configure(build_folder=self.build_subfolder)
@@ -82,5 +82,5 @@ class GooglebenchmarkConan(ConanFile):
          #self.cpp_info.libs = ["benchmark"]
         if self.settings.os == "Windows":
             self.cpp_info.libs.append("Shlwapi")
-        if self.settings.compiler == "gcc":
+        elif self.settings.os == "Linux":
             self.cpp_info.libs.append("pthread")
