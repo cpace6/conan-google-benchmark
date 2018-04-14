@@ -25,8 +25,8 @@ class GooglebenchmarkConan(ConanFile):
     default_options = "shared=False", "fPIC=True"
 
     # Custom attributes for Bincrafters recipe conventions
-    source_subfolder = "source_subfolder"
-    build_subfolder = "build_subfolder"
+    source_subfolder = "src_sf"
+    build_subfolder = "b_sf"
 
     def config_options(self):
         if self.settings.os == 'Windows':

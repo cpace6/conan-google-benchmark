@@ -2,7 +2,7 @@
 
 | Bintray | Windows | Linux & macOS |
 |:--------:|:---------:|:-----------------:|
-|BINTRAY_BADGE_URL|APPVEYOR_BADGE_URL|TRAVIS_BADGE_URL|
+|BINTRAY_BADGE_URL|[![Build status](https://ci.appveyor.com/api/projects/status/6ruummjw8yje9p1d?svg=true)](https://ci.appveyor.com/project/raulbocanegra/conan-google-benchmark)|[![Build Status](https://travis-ci.org/raulbocanegra/conan-google-benchmark.svg?)](https://travis-ci.org/raulbocanegra/conan-google-benchmark)|
 
 ## Conan.io Information
 
