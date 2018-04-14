@@ -53,6 +53,10 @@ class GooglebenchmarkConan(ConanFile):
         #cmake.definitions["BUILD_TESTS"] = False # example
         if self.settings.os != 'Windows':
             cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
+        else:
+            self.build_subfolder = os.path.join("c:\\", "build_google_test")
+            print(self.build_subfolder)
+                        
         cmake.configure(build_folder=self.build_subfolder)
         return cmake
 
