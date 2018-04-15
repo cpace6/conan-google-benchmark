@@ -22,7 +22,7 @@ class GooglebenchmarkConan(ConanFile):
     # Options may need to change depending on the packaged library.
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False], "enable_testing": [True, False], "enable_exceptions": [True, False]}
-    default_options = "shared=False", "fPIC=True"
+    default_options = "shared=False", "fPIC=True", "enable_testing=True", "enable_exceptions=True" 
 
     # Custom attributes for Bincrafters recipe conventions
     source_subfolder = "source_subfolder"
