@@ -21,7 +21,7 @@ class GooglebenchmarkConan(ConanFile):
 
     # Options may need to change depending on the packaged library.
     settings = "os", "arch", "compiler", "build_type"
-    options = {"shared": [True, False], "fPIC": [True, False]}
+    options = {"shared": [True, False], "fPIC": [True, False], "enable_testing": [True, False], "enable_exceptions": [True, False]}
     default_options = "shared=False", "fPIC=True"
 
     # Custom attributes for Bincrafters recipe conventions
@@ -31,6 +31,7 @@ class GooglebenchmarkConan(ConanFile):
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
+            self.short_paths = True # Otherwise it does not compile.
 
     def source(self):
         #zip_name = "v%s.zip" % self.version        
@@ -53,10 +54,8 @@ class GooglebenchmarkConan(ConanFile):
         #cmake.definitions["BUILD_TESTS"] = False # example
         if self.settings.os != 'Windows':
             cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
-        else:
-            self.build_subfolder = os.path.join("c:\\", "build_google_test")
-            print(self.build_subfolder)
-                        
+        cmake.definitions['BENCHMARK_ENABLE_TESTING'] = self.options.enable_testing
+        cmake.definitions['BENCHMARK_ENABLE_EXCEPTIONS'] = self.options.enable_exceptions
         cmake.configure(build_folder=self.build_subfolder)
         return cmake
 
@@ -83,8 +82,8 @@ class GooglebenchmarkConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
-         #self.cpp_info.libs = ["benchmark"]
         if self.settings.os == "Windows":
             self.cpp_info.libs.append("Shlwapi")
         elif self.settings.os == "Linux":
             self.cpp_info.libs.append("pthread")
+        #TODO: on Solaris add "kstat"
