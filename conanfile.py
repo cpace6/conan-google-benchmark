@@ -1,36 +1,89 @@
-from conans import ConanFile, CMake
-from conans.tools import download, unzip, replace_in_file
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
+from conans import ConanFile, CMake, tools
+import os
 
-class GoogleBenchmarkConan(ConanFile):
+class GooglebenchmarkConan(ConanFile):
     name = "google-benchmark"
-    version = "1.1.0"
-    settings = "arch", "build_type", "compiler", "os"
+    version = "1.3.0"
+    description = "A library to support the benchmarking of functions, similar to unit-tests."
+    url = "https://github.com/raulbocanegra/conan-google-benchmark"
+    homepage = "https://github.com/google/benchmark"
+    # Indicates License type of the packaged library
+    license = "https://github.com/raulbocanegra/conan-google-benchmark"
+    # Packages the license for the conanfile.py
+    exports = ["LICENSE.md"]
+
+    # Remove following lines if the target lib does not use cmake.
+    exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
-    url = "http://github.com/cpace6/conan-google-benchmark"
-    source_root = "benchmark-1.1.0"
-    license = "https://github.com/google/benchmark/blob/master/LICENSE"
+
+    # Options may need to change depending on the packaged library.
+    settings = "os", "arch", "compiler", "build_type"
+    options = {"shared": [True, False], "fPIC": [True, False], "enable_testing": [True, False], "enable_exceptions": [True, False]}
+    default_options = "shared=False", "fPIC=True", "enable_testing=True", "enable_exceptions=True" 
+
+    # Custom attributes for Bincrafters recipe conventions
+    source_subfolder = "source_subfolder"
+    build_subfolder = "build_subfolder"
+
+    def config_options(self):
+        if self.settings.os == 'Windows':
+            del self.options.fPIC
+            self.short_paths = True # Otherwise it does not compile.
 
     def source(self):
-        zip_name = "v%s.zip" % self.version
-        url = "https://github.com/google/benchmark/archive/%s" % zip_name
-        download(url, zip_name)
-        unzip(zip_name)
-        replace_in_file('{:s}/src/CMakeLists.txt'.format(self.source_root),
-                              'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nendif()',
-                              'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nelse()\n if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")\n  find_library(LIB_RT rt)\n  target_link_libraries(benchmark ${LIB_RT})\n endif()\nendif()')
+        #zip_name = "v%s.zip" % self.version        
+        #source_url = "https://github.com/google/benchmark/archive/%s" % zip_name
+        source_url = "https://github.com/google/benchmark"
+        tools.get("{0}/archive/v{1}.zip".format(source_url, self.version))
+        extracted_dir = "benchmark-" + self.version
 
+        #Rename to "source_subfolder" is a convention to simplify later steps
+        os.rename(extracted_dir, self.source_subfolder)
+
+        #tools.download(url, zip_name)
+        #tools.unzip(zip_name)
+        #shutil.move("benchmark-%s" % self.version, "benchmark")
+        #tools.replace_in_file("benchmark/CMakeLists.txt", "project (benchmark)", '''project (benchmark)\ninclude(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)\nconan_basic_setup()''')
+        #os.unlink(zip_name)        
+        
+    def configure_cmake(self):
+        cmake = CMake(self)
+        #cmake.definitions["BUILD_TESTS"] = False # example
+        if self.settings.os != 'Windows':
+            cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
+        cmake.definitions['BENCHMARK_ENABLE_TESTING'] = self.options.enable_testing
+        cmake.definitions['BENCHMARK_ENABLE_EXCEPTIONS'] = self.options.enable_exceptions
+        cmake.configure(build_folder=self.build_subfolder)
+        return cmake
+
+    def build_requirements(self):
+        self.build_requires("gtest/1.8.0@bincrafters/stable")    
+    
     def build(self):
-        cmake = CMake(self.settings)
-        self.run("mkdir _build")
-        configure_command = 'cd _build && cmake ../%s %s' % (self.source_root, cmake.command_line)
-        self.run(configure_command)
-        self.run("cd _build && cmake --build . %s" % cmake.build_config)
-
+        cmake = self.configure_cmake()
+        cmake.build()
+        
     def package(self):
-        self.copy(pattern="*.h", dst="include", src="%s/include" % self.source_root, keep_path=True)
-        self.copy(pattern="*.a", dst="lib", src=".", keep_path=False)
-        self.copy(pattern="*.lib", dst="lib", src=".", keep_path=False)
+        self.copy(pattern="LICENSE", dst="license", src=self.source_subfolder)
+        cmake = self.configure_cmake()
+        cmake.install()
+        # If the CMakeLists.txt has a proper install method, the steps below may be redundant
+        # If so, you can just remove the lines below
+        include_folder = os.path.join(self.source_subfolder, "include")
+        self.copy(pattern="*", dst="include", src=include_folder)
+        self.copy(pattern="*.dll", dst="bin", keep_path=False)
+        self.copy(pattern="*.lib", dst="lib", keep_path=False)
+        self.copy(pattern="*.a", dst="lib", keep_path=False)
+        self.copy(pattern="*.so*", dst="lib", keep_path=False)
+        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = ["benchmark"]
+        self.cpp_info.libs = tools.collect_libs(self)
+        if self.settings.os == "Windows":
+            self.cpp_info.libs.append("Shlwapi")
+        elif self.settings.os == "Linux":
+            self.cpp_info.libs.append("pthread")
+        #TODO: on Solaris add "kstat"
