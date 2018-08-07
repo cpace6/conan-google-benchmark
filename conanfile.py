@@ -1,31 +1,29 @@
-from conans import ConanFile, CMake
-from conans.tools import download, unzip, replace_in_file
-
+from conans import ConanFile, CMake, tools
 
 class GoogleBenchmarkConan(ConanFile):
     name = "google-benchmark"
-    version = "1.1.0"
+    version = "1.4.1"
     settings = "arch", "build_type", "compiler", "os"
     generators = "cmake"
     url = "http://github.com/cpace6/conan-google-benchmark"
-    source_root = "benchmark-1.1.0"
+    source_root = "benchmark-1.4.1"
     license = "https://github.com/google/benchmark/blob/master/LICENSE"
 
     def source(self):
         zip_name = "v%s.zip" % self.version
         url = "https://github.com/google/benchmark/archive/%s" % zip_name
-        download(url, zip_name)
-        unzip(zip_name)
-        replace_in_file('{:s}/src/CMakeLists.txt'.format(self.source_root),
+        tools.download(url, zip_name)
+        tools.unzip(zip_name)
+        tools.replace_in_file('{:s}/src/CMakeLists.txt'.format(self.source_root),
                               'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nendif()',
                               'if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")\n  target_link_libraries(benchmark Shlwapi)\nelse()\n if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")\n  find_library(LIB_RT rt)\n  target_link_libraries(benchmark ${LIB_RT})\n endif()\nendif()')
+        self.run("find %s -name '*.py' -exec chmod u+x {} \\;" % self.source_root)
 
     def build(self):
-        cmake = CMake(self.settings)
-        self.run("mkdir _build")
-        configure_command = 'cd _build && cmake ../%s %s' % (self.source_root, cmake.command_line)
-        self.run(configure_command)
-        self.run("cd _build && cmake --build . %s" % cmake.build_config)
+        cmake = CMake(self)
+        cmake.definitions["BENCHMARK_ENABLE_GTEST_TESTS"]="OFF"
+        cmake.configure(source_folder=self.source_root)
+        cmake.build()
 
     def package(self):
         self.copy(pattern="*.h", dst="include", src="%s/include" % self.source_root, keep_path=True)
